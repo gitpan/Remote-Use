@@ -1,0 +1,14 @@
+package rsyncconfig;
+
+sub getarg {
+  my ($class, $self) = @_;
+
+  return (
+    host => 'orion:',
+    prefix => '/tmp/perl5lib/',
+    command => 'rsync -i -vaue ssh',
+    ppmdf => '/tmp/perl5lib/.orion.installed.modules',
+  );
+}
+
+1;
