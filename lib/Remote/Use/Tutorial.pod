@@ -84,9 +84,10 @@ even if some libraries aren't availables at start time.
 The libraries will be downloaded from a specified server
 using a specified application that runs on top of some
 protocol. The clients must be binary compatibles with the 
-server if binary libraries - as the L<Math::Prime::XS> 
-example script used in 
-the L<SYNOPSIS> section - are involved.
+server if binary libraries - as is the case of the 
+module L<Math::Prime::XS> used 
+in the  L<SYNOPSIS> section example script -
+are involved.
 Typical downloaders are C<rsync> and C<wget> but 
 any suitable alternative like L<lwp-mirror> or C<Curl>
 can be used. This means 

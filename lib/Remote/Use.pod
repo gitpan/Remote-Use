@@ -4,7 +4,36 @@ Remote::Use - Using modules from a remote server
 
 =head1 SYNOPSIS
 
+  $ cat -n prime3.pl
+     1  #!/usr/bin/perl -I../lib -w
+     2  # The module Math::Prime::XS isn't installed in the machine
+     3  # but will be downloaded from some remote server
+     4  use Math::Prime::XS qw{:all};
+     5
+     6  @all_primes   = primes(9);
+     7  print "@all_primes\n";
+     8
+     9  @range_primes = primes(4, 9);
+    10  print "@range_primes\n";
+
+
   $ perl -I../lib -MRemote::Use=config,rsyncconfig prime3.pl
+
+  $ cat -n rsyncconfig
+     1  package rsyncconfig; # Configuration file
+     2
+     3  sub getarg {
+     4    my ($class, $self) = @_;
+     5
+     6    return (
+     7      host => 'orion:',
+     8      prefix => '/tmp/perl5lib/',
+     9      command => 'rsync -i -vaue ssh',
+    10      ppmdf => '/tmp/perl5lib/.orion.installed.modules',
+    11    );
+    12  }
+    13
+    14  1;
 
 =head1 INTRODUCTION
 
@@ -25,9 +54,10 @@ even if some libraries aren't availables at start time.
 The libraries will be downloaded from a specified server
 using a specified application that runs on top of some
 protocol. The clients must be binary compatibles with the 
-server if binary libraries - as the L<Math::Prime::XS> 
-example script used in 
-the L<SYNOPSIS> section - are involved.
+server if binary libraries - as is the case of the 
+module L<Math::Prime::XS> used 
+in the  L<SYNOPSIS> section example script -
+are involved.
 Typical downloaders are C<rsync> and C<wget> but 
 any suitable alternative like L<lwp-mirror> or C<Curl>
 can be used. This means 
@@ -392,6 +422,15 @@ example:
 The meaning of the options is at it was explained in
 section L<The getarg method>
 
+=head1 LIMITATIONS
+
+=over 2
+
+=item *
+Though not tested, more than likely, the current version
+of this module will only work in Unix-like systems.
+
+=back
 
 =head1 ACKNOWLEDGMENTS
 

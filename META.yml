@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Remote-Use
-version:             0.02
+version:             0.03
 abstract:            Using modules from a remote server
 license:             ~
 generated_by:        ExtUtils::MakeMaker version 6.31

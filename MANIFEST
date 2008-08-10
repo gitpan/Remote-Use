@@ -10,6 +10,7 @@ script/pminstalled.pl
 script/pminstalled.pod
 t/01requireRemoteUse.t
 t/02pod.t
+examples/orion.via.web
 examples/confighaspm.pl
 examples/configtutuhaspm.pl
 examples/hello.pl

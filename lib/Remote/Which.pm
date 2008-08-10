@@ -106,17 +106,3 @@ sub which {
 __END__
 
 
-=head1 Author
-
-Per Einar Ellefsen, E<lt>per.einar (at) skynet.beE<gt>
-
-Originated in I<modperl-2.0/lib/Apache/Build.pm>. Changed for use in DocSet
-(for the mod_perl site) and Win32-awareness by me, with slight modifications
-by Stas Bekman, then extracted to create C<Remote::Which>.
-
-Version 0.04 had some significant platform-related changes, taken from
-the Perl Power Tools C<`which'> implementation by Abigail with
-enhancements from Peter Prymmer. See
-http://www.perl.com/language/ppt/src/which/index.html for more
-information.
-

@@ -5,7 +5,7 @@ use Remote::Use
   commandoptions => '-O',
   host => 'http://orion.pcg.ull.es/~casiano/cpan', 
   prefix => '/tmp/perl5lib/',
-  cachefile => '/tmp/perl5lib/.orionhttp.installed.modules',
+  ppmdf => '/tmp/perl5lib/.orion.via.web',
 ;
 use Tintin::Trivial;
 use Trivial;

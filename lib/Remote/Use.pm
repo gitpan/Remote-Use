@@ -8,7 +8,7 @@ use File::Basename;
 
 use Scalar::Util qw{reftype};
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub filename2modname {
   my $config = shift;
@@ -107,21 +107,25 @@ sub Remote::Use::INC {
 
     my $f = $files{files};
     delete $files{files};
+
+    my $conf = $self->{confid}; # configuration package name
+
     my @files;
     @files= @$f if $f && (reftype($f) eq 'ARRAY');
     for (@files) {
-       #my $url = $self->{findurl}->($self, $_, $remoteprefix); #"$host:$_";
        my $url = "$host$_";
        my $file = $_;
        $file =~ s{^$remoteprefix}{$prefix};
+
+       $file = $conf->prefiles($url, $file, $self) if $conf && ($conf->can('prefiles'));
 
        my $path =  dirname($file);
        mkpath($path) unless -d $path;
 
        system("$command $url $commandoptions $file");
-    }
 
-    my $conf = $self->{confid}; # configuration package name
+       $conf->postfiles($file, $self) if ($conf && $conf->can('postfiles'));
+    }
 
     # Find if there are alternative families of files (bin, man, etc.)
     my @families = keys %files;
@@ -136,14 +140,15 @@ sub Remote::Use::INC {
          $file =~ s{^.*/}{$prefix/$_/}; #   /tmp/perl5lib/bin/eyapp
 
          my $pre = "pre$_";
-         $file = $conf->$pre($url, $file, $self) if ($conf->can($pre));
+         $file = $conf->$pre($url, $file, $self) if ($conf && $conf->can($pre));
 
          my $path =  dirname($file);
          mkpath($path) unless -d $path;
 
          system("$command $url $commandoptions $file");
+
          my $post = "post$_";
-         $conf->$post($file, $self) if ($conf->can($post));
+         $conf->$post($file, $self) if ($conf && $conf->can($post));
       }
     }
 

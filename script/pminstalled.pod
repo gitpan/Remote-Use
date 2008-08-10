@@ -27,7 +27,7 @@ C<pminstalled.pl> recursively looks for module files like
              An/Interesting/Module.pm
 
 that have a C<.pm> extension. The associated directory
-C</some/path/auto/An/Intersting/Module> is also visited
+C</some/path/auto/An/Interesting/Module> is also visited
 and all the files there will be added to the list 
 for C<An::Interesting::Module>.
 

@@ -5,7 +5,7 @@ use Remote::Use
   command => 'wget -v',
   commandoptions => '-O',
   prefix => '/tmp/perl5lib/',
-  cachefile => '/tmp/perl5lib/.orionhttp.installed.modules',
+  ppmdf => '/tmp/perl5lib/.orion.via.web',
 ;
 use Tintin::Trivial;
 use Trivial;
