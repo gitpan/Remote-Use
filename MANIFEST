@@ -10,6 +10,23 @@ script/pminstalled.pl
 script/pminstalled.pod
 t/01requireRemoteUse.t
 t/02pod.t
+t/03reqprime.t
+t/04confighaspm.t
+t/05usinganexecutable.t
+t/06usevsrequire.t
+t/07lwput1.t
+t/08reqprimenopackage.t
+t/09configtutuhaspm.t
+t/lwpmirrorconfig
+t/rsyncconfig
+t/t_rsyncconfig
+t/wgetconfigpm.pm
+t/wgetwithbinconfig
+t/tutu/wgetconfigpm.pm
+t/.orion.installed.modules
+t/.orion.via.web
+t/11reqprimewithscp.t
+t/rsyncconfigwithscp
 examples/orion.via.web
 examples/confighaspm.pl
 examples/configtutuhaspm.pl
@@ -55,4 +72,6 @@ examples/ut5.pl
 examples/wgetconfig
 examples/wgetwithbinconfig
 examples/wgetwithbinconfigpre
+examples/reqprimewithscp.pl
+examples/rsyncconfigwithscp
 META.yml                                 Module meta-data (added by MakeMaker)

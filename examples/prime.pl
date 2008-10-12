@@ -1,5 +1,5 @@
 #!/usr/bin/perl -I../lib -w
-use Remote::Use config => 'rsyncconfig';
+use Remote::Use config => 'rsyncconfigtonga';
 require Math::Prime::XS;
 Math::Prime::XS->import(':all');
 

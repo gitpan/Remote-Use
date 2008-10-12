@@ -1,21 +1,17 @@
-package wgetwithbinconfig;
+package tutu::wgetconfigpm;
 use strict;
 use warnings;
 
 sub getarg {
+  my $cache = -e '.orion.via.web' ? '.orion.via.web' : 't/.orion.via.web';
+  mkdir '/tmp/perl5lib' unless -e '/tmp/perl5lib/';
   return (
     command => 'wget -o /tmp/wget.log',
     commandoptions => '-O',
     host => 'http://orion.pcg.ull.es/~casiano/cpan',
     prefix => '/tmp/perl5lib/',
-    ppmdf => '/tmp/perl5lib/.orion.via.web',
+    ppmdf => $cache,
   );
-}
-
-sub postbin {
-  my $class = shift;
-
-  chmod 0755, @_;
 }
 
 1;

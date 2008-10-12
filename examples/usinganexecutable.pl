@@ -4,4 +4,7 @@ use Remote::Use config => 'wgetwithbinconfig';
 use Parse::Eyapp;
 use Parse::Eyapp::Treeregexp;
 
-system('eyapp -h');
+$ENV{PERL5LIB} .= ":/tmp/perl5lib/files";
+$ENV{PATH} .= ":/tmp/perl5lib/bin";
+
+system('echo $PATH; eyapp -h');

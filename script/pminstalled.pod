@@ -4,13 +4,68 @@ pminstalled.pl - Builds a Perl Public Module Descriptor File
 
 =head1 SYNOPSYS
 
+This script must be installed in the server.
+If not, just copy it from the client:
+
+  client$ scp pminstalled.pl perlmodule.server:
+
 Executed in the server:
 
   perlmodule.server$ pminstalled.pl [options] [searchpathlist] -o .ppmdf.descriptor
 
 or executed in the client (assuming automatic SSH authentication):
 
-  client$ ssh remote.machine perl pminstalled.pl [options] [searchpathlist] > .ppmdf.descriptor
+  client$ ssh perlmodule.server perl pminstalled.pl [options] [searchpathlist] > .ppmdf.descriptor
+
+=head1 DESCRIPTION
+
+This script is part of the L<Remote::Use>
+distribution. Its execution
+produces a Perl Public Module Descriptor File 
+of the specified Perl Modules Server (see section below
+L</PERL PUBLIC MODULES DESCRIPTOR FILE (PPMDF)>.
+Such file is used by a Perl program in a client machine 
+when dealing with a statement 
+
+   use Some::Module;
+
+to resolve where to locate C<Some::Module> inside the 
+server machine
+
+=head1 WARNING
+
+When I wrote this module I didn't know of the existence of
+L<PAR::Repository::Client> and L<PAR::Repository> distributions.
+These distributions - now embedded inside the L<PAR> distribution -
+broach similar problems.
+
+Look at them first before considering using this one.
+They provide a solution more robust and cover 
+a range of problems much wider than this distribution.
+
+L<Remote::Use> focuses in the direct loading of modules already installed in some 
+remote server while L<PAR::Repository::Client> and L<PAR::Repository>
+deal with the use of remote C<PAR> repositories. 
+
+There are a few scenarios where this module can still
+be useful:
+
+=over 2
+
+=item * If your server and clients are homogeneous: same Perl version,
+very similar O.S. distributions, same external libraries installed, etc.
+and you want to avoid the extra work of repository creation and
+administration
+
+=item * If you want to use protocols like SSH, SFTP or
+others not currently supported by L<PAR::Repository::Client> and L<PAR::Repository>
+
+=item * If no binaries are involved
+
+=back
+
+
+
 
 
 =head1 EXECUTION MODES
@@ -75,6 +130,36 @@ will be published and what files must be downloaded for each of those modules.
 It is used by L<Remote::Use> to automatically download the Perl modules
 need by a script being executed from a Perl Public Modules Server (See
 L<Remote::Use::Tutorial>).
+
+The file is a Perl list. For each published module C<Some::Module>
+there is a key which is the associated file name C<Some/Module.pm>
+and a value. The value is a hash reference that must contain at least
+two entries: one named C<dir> and another named C<file>. The second 
+contains the list of files to be downloaded when C<Some::Module>
+is used. The C<dir> entry contains the prefix path that must be 
+removed from the path of the source file names (at the server)
+to produce the target file names (at the client). 
+
+      'Some/Module.pm' => {
+        dir => '/prefix/path/',
+        files => [ '/auto/Some/Module/Module.so', 
+                   '/Some/Module.pm', 
+                   '/Some/Module.pod' ],
+        bin => [ '/some/script', /another/script' ],
+        man => [ '/some/man', /another/man' ],
+      }
+
+          
+For each module
+entry additional file families can be added 
+as illustrates the C<bin>
+entry for C<Parse::Eyapp> in the former example:
+
+  'Parse/Eyapp.pm' => { dir => '',
+    files => [ '/Parse/Eyapp.pm' ],
+    bin => [ '/bin/eyapp', '/bin/treereg' ]
+  }
+
 The following example illustrates the syntax of a PPMDF file:
 
   pp2@nereida:~/LRemoteUse/examples$ cat /tmp/perl5lib/.orion.via.web
@@ -117,34 +202,32 @@ The following example illustrates the syntax of a PPMDF file:
           '/Math/Prime/XS.pm' ] },
   );
 
-The file is a Perl list. For each published module C<Some::Module>
-there is a key which is the associated file name C<Some/Module.pm>
-and a value. The value is a hash reference that must contain at least
-two entries: one named C<dir> and another named C<file>. The second 
-contains the list of files to be downloaded when C<Some::Module>
-is used. The C<dir> entry contains the prefix path that must be 
-removed from the path of the source file names (at the server)
-to produce the target file names (at the client). 
+Here is another (summarized) example:
 
-      'Some/Module.pm' => {
-        dir => '/prefix/path/',
-        files => [ '/auto/Some/Module/Module.so', 
-                   '/Some/Module.pm', 
-                   '/Some/Module.pod' ],
-        bin => [ '/some/script', /another/script' ],
-        man => [ '/some/man', /another/man' ],
-      }
-
-          
-For each module
-entry additional file families can be added 
-as illustrates the C<bin>
-entry for C<Parse::Eyapp> in the former example:
-
-  'Parse/Eyapp.pm' => { dir => '',
-    files => [ '/Parse/Eyapp.pm' ],
-    bin => [ '/bin/eyapp', '/bin/treereg' ]
-  }
+  ~/LRemote-Use/script$ head -23 orion.installed.modules
+  (
+  'CPAN/Config.pm' => { dir => '/etc/perl', files => [
+	  '/etc/perl/CPAN/Config.pm' ] },
+  'Template.pm' => { dir => '/usr/local/lib/perl/5.8.8', files => [
+	  '/usr/local/lib/perl/5.8.8/auto/Template/Stash/XS/XS.so',
+	  '/usr/local/lib/perl/5.8.8/auto/Template/Stash/XS/XS.bs',
+	  '/usr/local/lib/perl/5.8.8/Template.pm' ] },
+  'IO/Tty.pm' => { dir => '/usr/local/lib/perl/5.8.8', files => [
+	  '/usr/local/lib/perl/5.8.8/auto/IO/Tty/Tty.so',
+	  '/usr/local/lib/perl/5.8.8/auto/IO/Tty/Tty.bs',
+	  '/usr/local/lib/perl/5.8.8/IO/Tty.pm' ] },
+  'IO/Pty.pm' => { dir => '/usr/local/lib/perl/5.8.8', files => [
+	  '/usr/local/lib/perl/5.8.8/IO/Pty.pm' ] },
+  'IO/Tty/Constant.pm' => { dir => '/usr/local/lib/perl/5.8.8', files => [
+	  '/usr/local/lib/perl/5.8.8/IO/Tty/Constant.pm' ] },
+  'Math/Prime/XS.pm' => { dir => '/usr/local/lib/perl/5.8.8', files => [
+	  '/usr/local/lib/perl/5.8.8/auto/Math/Prime/XS/XS.so',
+	  '/usr/local/lib/perl/5.8.8/auto/Math/Prime/XS/XS.bs',
+	  '/usr/local/lib/perl/5.8.8/Math/Prime/XS.pm' ] },
+  'Template/Stash.pm' => { dir => '/usr/local/lib/perl/5.8.8', files => [
+	  '/usr/local/lib/perl/5.8.8/auto/Template/Stash/XS/XS.so',
+	  '/usr/local/lib/perl/5.8.8/auto/Template/Stash/XS/XS.bs',
+	  '/usr/local/lib/perl/5.8.8/Template/Stash.pm' ] },
 
 
 

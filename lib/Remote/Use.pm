@@ -8,8 +8,9 @@ use File::Basename;
 
 use Scalar::Util qw{reftype};
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
+# Receives s.t. like 'Remote/Use.pm' and returns 'Remote::Use'
 sub filename2modname {
   my $config = shift;
 
@@ -19,6 +20,9 @@ sub filename2modname {
   return $confid;
 }
 
+# Evaluates the ppmdf file as perl code.
+# The resulting hash is set as the attribute 'cache'
+# of the Remote::Use object
 sub setinstallation {
   my $self = shift;
   
@@ -40,15 +44,27 @@ sub import {
 
   my $config = $arg{config};
 
-  my $self = __PACKAGE__->new();
+  # Set the code handler in @INC so that we can later manage "use Module"
+  # via Remote::Use::INC
+
+  my $self = $module->new();
   push @INC, $self;
+
+  # If the 'config' option is used we take the 
+  # arguments from the configuration package
   if (defined($config) && -r $config) {
     eval {
       require $config;
     };
     die "Error in $config: $@" if $@;
-    my $confid = filename2modname($config);
 
+    my $confid = $arg{package};
+    
+    $confid = filename2modname($config) unless defined($confid);
+
+    # The $confid package must have defined 
+    # the 'getarg' method
+    
     $self->{confid} = $confid;
     %arg = $confid->getarg($self);
   }
@@ -59,6 +75,10 @@ sub import {
   delete $arg{host};
   $self->{host} = $host;
 
+  # The 'prefix' attribute is the path where files and libraries
+  # will be installed. If not provided it will be set to s.t. like
+  # /home/myname/perl5lib
+
   my $perl5lib = "$ENV{HOME}/perl5lib" if $ENV{HOME};
   $perl5lib    = "$ENV{USERPROFILE}/perl5lib" if !$perl5lib && $ENV{USERPROFILE};
 
@@ -66,22 +86,24 @@ sub import {
   die "Provide a prefix directory" unless defined $prefix;
   delete $arg{prefix};
 
+  # Create the directory if it does not exists
   mkpath($prefix) unless -d $prefix;
-  unshift @INC, $prefix;
+  unshift @INC, "$prefix/files";
 
   my $ppmdf = $arg{ppmdf};
   die "Provide a .installed.modules filename (ppmdf argument)" unless defined $ppmdf;
   delete $arg{ppmdf};
   $self->{ppmdf} = $ppmdf;
 
+  # Opens and evaluates the ppmdf file. It sets the attribute 'cache'
   $self->setinstallation;
 
+  # What application shall we use: rsync? wget? ...
   my $command = $arg{command};
   die "Provide a command" unless defined $command;
   $self->{command} = $command;
   delete $arg{command};
 
-  # TODO: If 'method' (wget, lwpmirror) isn't defined find a suitable method ...
   $self->{$_} = $arg{$_} for keys(%arg); 
 }
 
@@ -89,17 +111,24 @@ sub Remote::Use::INC {
   my ($self, $filename) = @_;
 
   if ($filename =~ m{^[\w/\\]+\.pm$}) {
-    my $prefix = $self->{prefix};
-    my $host = $self->{host};
+    my $prefix = $self->{prefix}; # prefix path where the file will be stored ('/tmp/perl5lib')
+    my $host = $self->{host};     # the 'host part' defining where the server is ('orion:')
 
-    my $command = $self->{command};
-    # Use open3 here
-    my $commandoptions = $self->{commandoptions} || '';
+    my $command = $self->{command}; # rsync, scp, wget, etc. Options included
 
+    # options required by $command that go after the $host$sourcefile part
+    my $commandoptions = $self->{commandoptions} || ''; 
+
+    # an entry for some $filename is like:
+    # 'IO/Tty.pm' => { dir => '/usr/local/lib/perl/5.8.8', files => [
+    #                '/usr/local/lib/perl/5.8.8/auto/IO/Tty/Tty.so',
+    #                '/usr/local/lib/perl/5.8.8/auto/IO/Tty/Tty.bs',
+    #                         '/usr/local/lib/perl/5.8.8/IO/Tty.pm' ] },
     my %files;
     my $entry = $self->{cache}{$filename};
     %files = %{$entry} if $entry && (reftype($entry) eq 'HASH');
 
+    # No files, nothing to download
     return unless %files;
 
     my $remoteprefix = quotemeta($files{dir});
@@ -113,17 +142,22 @@ sub Remote::Use::INC {
     my @files;
     @files= @$f if $f && (reftype($f) eq 'ARRAY');
     for (@files) {
-       my $url = "$host$_";
-       my $file = $_;
-       $file =~ s{^$remoteprefix}{$prefix};
+       my $url = "$host$_"; # s.t. like 'orion:/usr/local/lib/perl/5.8.8/auto/IO/Tty/Tty.so'
+       my $file = $_;       # s.t. like '/usr/local/lib/perl/5.8.8/auto/IO/Tty/Tty.so'
+       $file =~ s{^$remoteprefix}{$prefix/files/}; # s.t. like '/tmp/perl5lib/files/auto/IO/Tty/Tty.so'
 
+       # If the configuration package defines a 'prefiles' method, use it to obtain
+       # the final name of the file:
        $file = $conf->prefiles($url, $file, $self) if $conf && ($conf->can('prefiles'));
 
-       my $path =  dirname($file);
+       my $path =  dirname($file);    # s.t. like ''/tmp/perl5lib/files/auto/IO/Tty/'
        mkpath($path) unless -d $path;
 
+       # grab the $url and store it in $file
        system("$command $url $commandoptions $file");
 
+       # If the configuration package defines a 'postfiles' method, use it 
+       # to do any required modifications to the file (changing its mod access for example)
        $conf->postfiles($file, $self) if ($conf && $conf->can('postfiles'));
     }
 
@@ -152,7 +186,7 @@ sub Remote::Use::INC {
       }
     }
 
-     open my $fh, '<', "$prefix/$filename";
+     open my $fh, '<', "$prefix/files/$filename";
      return $fh;
   }
 
